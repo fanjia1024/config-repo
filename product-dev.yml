@@ -2,15 +2,15 @@ spring:
   datasource:
     driver-class-name: com.mysql.jdbc.Driver
     username: root
-    password: 12345678
-    url: jdbc:mysql://192.168.43.167:3306/springcloud_sell?characterEncoding=utf-8&useSSL=false
+    password: 123456
+    url: jdbc:mysql://192.168.43.191:3306/springcloud_sell?characterEncoding=utf-8&useSSL=false
   rabbitmq:
-    host: 192.168.43.167
+    host: 192.168.43.191
     port: 5672
     username: guest
     password: guest
   redis:
-    host: 192.168.43.167
+    host: 192.168.43.191
     port: 6379
   jpa:
     show-sql: true
