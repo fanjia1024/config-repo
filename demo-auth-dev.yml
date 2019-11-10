@@ -1,0 +1,41 @@
+security:
+  filter-order: 5
+
+emp:
+  security:
+    #支持spring security的session认证和oauth2的token认证
+    oauth2:
+      #memory:内存, jdbc:数据库，redis:redis方式, jwt:jwt方式，用于认证服务，jwt4Resource:jwt方式，用于资源服务
+      tokenType: jwt
+      accessTokenValiditySeconds: 1800 #token失效时间，单位秒
+      refreshTokenValiditySeconds: 3600 #refresh token失效时间，单位秒
+    session:
+      #需要cookie-session认证管理方式的路径，除此外均为jwt认证方式
+      path:
+      - /login.do
+      - /logout.do
+      - /user.do
+      #退出处理url，需要前端定义一样
+      logoutUrl: /logout.do
+      #登陆处理url，需要前端定义一样
+      loginProcessingUrl: /login.do
+    #后台用户认证服务映射
+    loginService:
+    - type: pc
+      service: demo-service
+      URI: /login.do
+    - type: mb
+      service: demo-service
+      URI: /mlogin.do
+    - type: in
+      service: demo-service
+      URI: /userLogon.do
+    #校验码配置
+    validateCode:
+      #是否开启校验
+      check: false
+      #不用校验的客户端id
+      ignoreClientCode:
+      - client3
+      - client4
+      

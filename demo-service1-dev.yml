@@ -1,0 +1,180 @@
+# 全局配置
+base:
+  db:
+    driverClassName: com.mysql.jdbc.Driver #oracle.jdbc.driver.OracleDriver
+    url: jdbc:mysql://192.168.199.183:3306/demo?characterEncoding=utf8&useSSL=false&allowPublicKeyRetrieval=true #jdbc:oracle:thin:@192.168.251.158:1521:ycorcl
+    username: root
+    password: 123456
+  redis:
+    host: 192.168.199.201
+    port: 6379
+    password:
+  zipkin:
+    url: http://192.168.199.201:9411/
+  boot-admin:
+    url: http://127.0.0.1:8761/admin/  
+    
+# 日志
+logging:
+  config: classpath:logback-dev.xml
+  path: logs #生产系统，需要配置绝对路径，logback.xml需要配置文件输出，关闭标准输出
+  file: ${logging.path}/${spring.application.name}_${server.port}.log
+  
+  
+management:
+  security:
+    enabled: false
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
+
+spring:
+  zipkin:
+    base-url: ${base.zipkin.url}
+    sender:
+      type: web
+  sleuth:
+    sampler:
+      percentage: 1.0
+  redis:
+    #如果是集群模式，在cluster.nodes下添加节点即可
+    #cluster:
+    #  nodes: 
+    #    - 127.0.0.1:7001
+    #    - 127.0.0.1:7002
+    database: 0
+    host: ${base.redis.host}
+    port: ${base.redis.port}
+    password:
+    pool.max-active: 8
+    pool.max-wait: 20000
+    pool.max-idle: 8
+    pool.min-idle: 0
+    timeout: 6000
+  datasource:
+    url: ${base.db.url}
+    username: ${base.db.username}
+    password: ${base.db.password}
+    driverClassName: ${base.db.driverClassName}
+    maxTotal: 50
+    initialSize: 2
+  boot:
+    admin:
+      client:
+        url: ${base.boot-admin.url}
+elastic:
+  apm-server:
+    url: ${base.apm.url}
+    packages: com.yusys
+    
+server:
+  tomcat:
+    max-threads: 200 # Maximum amount of worker threads.
+    min-spare-threads: 10 # Minimum amount of worker threads
+
+# eureka配置
+eureka:
+  client:
+    # eureka客户端从eureka服务器注册表中获取服务注册信息的时间间隔（s），默认为30秒,开发阶段调小
+    registry-fetch-interval-seconds: 10
+  instance:
+      # 注册服务ip到eureka server上
+      prefer-ip-address: true
+      # 自定义服务实例id
+      instance-id: ${spring.application.name}:${spring.cloud.client.ip-address}:${server.port}
+      # 服务实例的续约到期时间（默认90秒），也就是心跳的最大等待时间。开发阶段调小
+      lease-expiration-duration-in-seconds: 10
+      # 服务实例的续约更新时间间隔（默认30秒），也就是心跳时间。开发阶段调小
+      lease-renewal-interval-in-seconds: 6
+      metadata-map:
+        # 服务实例权重 默认100
+        weight: 100
+        # 服务actuator的管理port，如果设置了的话，Turbine监控台就获取不到对应服务的hystrix.stream。这里就需要设置，Turbine会读取这个端口。
+        management.port: ${management.port:${server.port}}
+
+
+# hystrix配置
+hystrix:
+  threadpool:
+    default:
+      coreSize: 100
+      maxQueueSize: 1000
+      queueSizeRejectionThreshold: 800
+  command:
+    default:
+      execution:
+        isolation:
+          thread:
+            # 断路器的超时时间,断路器的超时时间需要大于ribbon的超时时间，不然不会触发重试。ribbon的超时时间计算公式：
+            # ribbonTimeout = (ReadTimeout + ConnectTimeout) * (maxAutoRetries + 1) * (maxAutoRetriesNextServer + 1);
+            timeoutInMilliseconds: 20000
+
+# ribbon配置
+ribbon:
+  eager-load:
+    enabled: true
+  # ribbon请求连接的超时时间 默认2秒 ms
+  ConnectTimeout: 5000
+  # 请求处理的超时时间 默认5秒 ms
+  ReadTimeout: 10000
+  # 对所有操作请求都进行重试,不配置这个MaxAutoRetries不起作用 默认false
+  OkToRetryOnAllOperations: true
+  # 对当前实例的重试次数 默认0
+  MaxAutoRetries: 0
+  # 切换实例的重试次数 默认1
+  MaxAutoRetriesNextServer: 0
+  # 自定义的ribbon负载均衡策略 默认com.yusys.common.ribbon.CustomWeightMetadataRule，需要设置gray-enable为true
+  #NFLoadBalancerRuleClassName: com.yusys.common.config.GrayWeightMetadataRule
+  # 从注册中心刷新servelist的时间 默认30秒 ms
+  ServerListRefreshInterval: 15000
+  
+jasypt:
+  encryptor:
+    algorithm: PBEWithMD5AndDES
+    password: secretkey   
+
+feign:
+  hystrix:
+    enabled: true
+  client:
+    config:
+      feignName:
+        connectTimeout: 5000
+        readTimeout: 5000
+  compression:
+    request:
+      enabled: true
+    response:
+      enabled: true
+      
+EMP:
+  #是否启用灰度发布,如果是false，需要注释NFLoadBalancerRuleClassName参数
+  gray-enable: false
+  #是否导出rest/dubbo/webservice服务
+  biz-export-rest: true
+  biz-export-dubbo: false
+  biz-export-webservice: true
+  #自定义header字段,逗号分隔, 改字段被处理放置context中
+  headerFields: 
+  LianaSettings:
+    DBType: "mysql"
+    enableLogonControl: false #是否启用单点登录控制 true:是，false:否
+    logonctrl_channel: false #单点登录全渠道还是单渠道控制，true:全,false:单
+    enableScriptFilter: true #是否启用脚本过滤 true:是，false:否
+    logoncode_timeout: 600000 #登陆图形验证码超时时间
+    trancode_timeout: 600000 #交易图形验证码超时时间
+    mobilecode_timeout: 600000 #手机动态验证码超时时间
+    tempDownloadDir: "E:/downloads/peresbFiles/"
+    tempFileSaveDir: "/usr/tempfile/perfile/"
+    session_timeout: "600000"
+  BankSettings:
+    productMode: false #是否做验证码验证 true:是，false:否
+    readLocalFile: true #接口是否读本地文件 true:是，false:否(发接口交易)
+    monitor_switch: false #监控开关
+    monitor_inteval: 60000 #监控数据收集间隔
+    monitor_server_URL: http://192.168.43.99:9200 #ES搜索服务器url
+    monitor_biz_list: houseInfo.infoQry,houseInfo.protocolStateQry #需要监控的biz清单          

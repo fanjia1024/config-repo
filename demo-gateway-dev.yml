@@ -1,0 +1,83 @@
+emp:
+  security:
+    # 忽略认证的地址
+    ignoreUrls:
+      - /**/v2/api-docs
+      - /**/*.js
+      - /**/*.html
+      - /**/*.css
+      - /**/inner/*
+      - /**/mvcs/*
+      - /**/img/*
+      - /**/js/*
+      - /**/html/*
+      - /**/css/*
+      - /**/xml/*
+      - /demo-auth/*
+    #支持spring security的cookie-session鉴权和oauth2的鉴权
+    oauth2:
+      # oauth2鉴权方式
+      httpUrls:
+      - /biz/**
+      - /biz3/**
+      #是否开启url级别权限
+      urlEnabled: false
+    session:
+      #cookie-session鉴权方式
+      httpUrls:
+#      - /demo-service/**
+      - /demo-service1/**
+      #是否开启url级别权限
+      urlEnabled: false
+  #swagger 服务注册排除    
+  swagger: 
+    excludeService: demo-auth,demo-registry
+#文件上传后存储本地路径
+static: 
+  filepath: d:/res/
+
+zuul:
+  debug:
+    request: true
+  sensitiveHeaders:
+  routes:
+    demo-auth:
+      sensitive-headers:
+      custom-sensitive-headers: true
+  ratelimit:
+    key-prefix: gateway-ratelimit
+    enabled: false
+    custom: true
+    repository: REDIS
+    behind-proxy: true
+    # 给所有service的默认配置。首先根据route获取对应的policy-list，如果从default-policy-list获取
+    default-policy-list:
+      # 每个刷新时间窗口对应的请求数量限制  - request number limit per refresh interval window
+      - limit: 10
+        # 每个刷新时间窗口对应的请求时间限制（秒）- request time limit per refresh interval window (in seconds)
+        #quota: 20
+        # 刷新时间窗口的时间，默认值 (秒), 即: 每60秒只能请求10次
+        refresh-interval: 1
+        type: #optional
+          - origin
+          - url       
+    policy-list:
+      demo-service1:
+       #可以定义多个limit 策略，比如不同url有不同的limit，但多个策略都会生效，只要其中一个策略超过限流了都会返回异常。
+        - limit: 30
+          #quota: 60
+          refresh-interval: 30
+          type: 
+            - url
+        #- limit: 100
+        #  quota: 10
+        #  refresh-interval: 60
+        #  type: 
+        #    - url=/queryIMlog     
+spring:
+  servlet:
+     multipart:
+        enabled: true
+        file-size-threshold: 0
+        max-file-size: 100Mb
+        max-request-size: 100Mb
