@@ -2,7 +2,7 @@
 base:
   db:
     driverClassName: com.mysql.jdbc.Driver #oracle.jdbc.driver.OracleDriver
-    url: jdbc:mysql://192.168.199.183:3306/demo?characterEncoding=utf8&useSSL=false&allowPublicKeyRetrieval=true #jdbc:oracle:thin:@192.168.251.158:1521:ycorcl
+    url: jdbc:mysql://127.0.0.1:3306/demo?characterEncoding=utf8&useSSL=false&allowPublicKeyRetrieval=true #jdbc:oracle:thin:@192.168.251.158:1521:ycorcl
     username: root
     password: 123456
   redis:
@@ -33,6 +33,8 @@ management:
       show-details: always
 
 spring:
+  application:
+    name: demo-service
   zipkin:
     base-url: ${base.zipkin.url}
     sender:
@@ -72,6 +74,7 @@ elastic:
     packages: com.yusys
     
 server:
+  port: 8083
   tomcat:
     max-threads: 200 # Maximum amount of worker threads.
     min-spare-threads: 10 # Minimum amount of worker threads
